@@ -5,12 +5,16 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 
 	httptransport "github.com/go-kit/kit/transport/http"
 )
 
 func main() {
-	svc := lastSeenService{}
+
+	logger := log.New(os.Stdout, "go-active", log.LstdFlags|log.Lshortfile)
+
+	svc := NewLastSeenService(logger)
 	updateHandler := httptransport.NewServer(
 		makeUpdateEndpoint(svc),
 		decodeUpdateRequest,
@@ -25,7 +29,8 @@ func main() {
 
 	http.Handle("/update", updateHandler)
 	http.Handle("/get", lastSeenHandler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	logger.Println("starting service on http://localhost:8080")
+	logger.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func encodeResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
