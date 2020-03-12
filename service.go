@@ -1,4 +1,4 @@
-package main
+package active
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 // LastSeenService interface
 type LastSeenService interface {
 	Update(string) (*Visitor, error)
-	LastSeen(string) (time.Time, error)
+	LastSeen(string) (*time.Time, error)
 }
 
 // Visitor structure
@@ -20,11 +20,16 @@ type Visitor struct {
 
 type lastSeenService struct {
 	logger *log.Logger
+	data   map[string]Visitor
 }
 
 // NewLastSeenService create the service
 func NewLastSeenService(logger *log.Logger) LastSeenService {
-	return &lastSeenService{logger}
+	data := make(map[string]Visitor)
+	return &lastSeenService{
+		logger: logger,
+		data:   data,
+	}
 }
 
 func (s *lastSeenService) Update(identifier string) (*Visitor, error) {
@@ -32,21 +37,23 @@ func (s *lastSeenService) Update(identifier string) (*Visitor, error) {
 		return nil, errEmpty
 	}
 
-	//lookup the visitor
+	v := Visitor{identifier, time.Now()}
+	s.data[identifier] = v
 
-	//update
-
-	//return
-	return &Visitor{identifier, time.Now()}, nil
+	return &v, nil
 }
 
-func (s *lastSeenService) LastSeen(identifier string) (time.Time, error) {
+func (s *lastSeenService) LastSeen(identifier string) (*time.Time, error) {
 	if identifier == "" {
-		return time.Now(), errEmpty
+		return nil, errEmpty
+	}
+	v := s.data[identifier]
+
+	if &v != nil {
+		return nil, errEmpty
 	}
 
-	s.logger.Println("Last seen")
-	return time.Now(), nil
+	return &v.lastSeen, nil
 }
 
 var errEmpty = errors.New("No identifier for this visitor")

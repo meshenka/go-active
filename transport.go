@@ -1,4 +1,4 @@
-package main
+package active
 
 import (
 	"context"
@@ -6,7 +6,8 @@ import (
 	"github.com/go-kit/kit/endpoint"
 )
 
-type lastSeenRequest struct {
+// LastSeenRequest is a json structure of a call
+type LastSeenRequest struct {
 	Identifier string `json:"identifer"`
 }
 
@@ -15,7 +16,8 @@ type lastSeenResponse struct {
 	Err      string `json:"err,omitempty"` // errors don't JSON-marshal, so we use a string
 }
 
-type updateRequest struct {
+// UpdateRequest json structure
+type UpdateRequest struct {
 	Identifier string `json:"identifier"`
 }
 
@@ -29,9 +31,10 @@ type jsonVisitor struct {
 	LastSeen   string `json:"lastSeen"`
 }
 
-func makeLastSeenEndpoint(svc LastSeenService) endpoint.Endpoint {
+// MakeLastSeenEndpoint build end point
+func MakeLastSeenEndpoint(svc LastSeenService) endpoint.Endpoint {
 	return func(_ context.Context, request interface{}) (interface{}, error) {
-		req := request.(lastSeenRequest)
+		req := request.(LastSeenRequest)
 		time, err := svc.LastSeen(req.Identifier)
 
 		if err != nil {
@@ -42,9 +45,10 @@ func makeLastSeenEndpoint(svc LastSeenService) endpoint.Endpoint {
 	}
 }
 
-func makeUpdateEndpoint(svc LastSeenService) endpoint.Endpoint {
+// MakeUpdateEndpoint build endpoint
+func MakeUpdateEndpoint(svc LastSeenService) endpoint.Endpoint {
 	return func(_ context.Context, request interface{}) (interface{}, error) {
-		req := request.(updateRequest)
+		req := request.(UpdateRequest)
 		visitor, err := svc.Update(req.Identifier)
 
 		var v = jsonVisitor{visitor.identifier, visitor.lastSeen.String()}
